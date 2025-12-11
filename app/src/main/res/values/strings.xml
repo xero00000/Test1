@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FEXDroid</string>
+    <string name="app_description">FEX-Emu x86_64 Emulator for Android</string>
+    <string name="status_ready">FEXDroid is ready</string>
+    <string name="run_test">Run Test Binary</string>
+</resources>
