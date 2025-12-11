@@ -343,10 +343,10 @@ class GameLibraryManager(
         try {
             var cleanedBytes = 0L
             
-            // Clean up old log files
-            val logDir = File(storageManager.getGameLibraryPath(), "logs")
-            if (logDir.exists()) {
-                cleanedBytes += storageManager.cleanupStorage()
+            // Clean up old log files using storage manager
+            val cleanupResult = storageManager.cleanupStorage()
+            if (cleanupResult is CleanupResult.Success) {
+                cleanedBytes += cleanupResult.cleanedBytes
             }
             
             // Clean up temporary files in game directories
@@ -412,11 +412,6 @@ sealed class ScanUpdatesResult {
         val totalGames: Int
     ) : ScanUpdatesResult()
     data class Error(val message: String) : ScanUpdatesResult()
-}
-
-sealed class CleanupResult {
-    data class Success(val bytesFreed: Long) : CleanupResult()
-    data class Error(val message: String) : CleanupResult()
 }
 
 private fun File.isSymlink(): Boolean {

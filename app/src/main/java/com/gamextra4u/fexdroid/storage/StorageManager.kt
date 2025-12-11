@@ -124,7 +124,7 @@ class StorageManager(
             totalBytes = totalBytes,
             availableBytes = availableBytes,
             usedBytes = usedBytes,
-            usagePercentage = if (totalBytes > 0) (usedBytes * 100 / totalBytes) else 0,
+            usagePercentage = if (totalBytes > 0) (usedBytes * 100 / totalBytes).toInt() else 0,
             gameLibraryPath = gameLibraryDir.absolutePath,
             downloadsPath = downloadsDir.absolutePath
         )
@@ -178,7 +178,7 @@ class StorageManager(
             Environment.isExternalStorageManager()
         } else {
             // Android 10 and below use legacy storage permissions
-            android.os.Environment.checkPermission(
+            context.checkPermission(
                 android.Manifest.permission.WRITE_EXTERNAL_STORAGE, 
                 android.os.Process.myPid(), 
                 android.os.Process.myUid()
