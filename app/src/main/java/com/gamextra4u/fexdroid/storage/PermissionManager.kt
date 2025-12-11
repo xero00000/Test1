@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -112,7 +114,7 @@ class PermissionManager(
     ) {
         // This is a simplified version - in a real app you'd use ActivityResultContracts
         // For now, we'll simulate permission requests
-        activity.lifecycleScope.launch {
+        CoroutineScope(Dispatchers.Main).launch {
             try {
                 // In a real implementation, you would use:
                 // val result = activityResultLauncher.launch(permissions)
@@ -262,7 +264,7 @@ class PermissionManager(
 /**
  * Required permissions enumeration
  */
-enum class RequiredPermission(val name: String) {
+enum class RequiredPermission(val permissionName: String) {
     STORAGE("android.permission.WRITE_EXTERNAL_STORAGE"),
     INTERNET("android.permission.INTERNET"),
     NETWORK_STATE("android.permission.ACCESS_NETWORK_STATE"),
