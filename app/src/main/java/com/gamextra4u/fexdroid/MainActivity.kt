@@ -17,6 +17,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.gamextra4u.fexdroid.databinding.ActivityMainBinding
 import com.gamextra4u.fexdroid.input.*
+import com.gamextra4u.fexdroid.steam.GameFilterType
+import com.gamextra4u.fexdroid.steam.GameLibraryStats
+import com.gamextra4u.fexdroid.steam.GameManager
+import com.gamextra4u.fexdroid.steam.GameSortType
+import com.gamextra4u.fexdroid.steam.InstallOperation
+import com.gamextra4u.fexdroid.steam.OperationStatus
+import com.gamextra4u.fexdroid.steam.SteamGame
 import com.gamextra4u.fexdroid.steam.SteamLaunchState
 import com.gamextra4u.fexdroid.steam.SteamLauncher
 import com.gamextra4u.fexdroid.steam.SteamSessionStore
@@ -35,6 +42,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var storageManager: StorageManager
     private lateinit var permissionManager: PermissionManager
     private lateinit var gameLibraryManager: GameLibraryManager
+    private lateinit var gameManager: GameManager
     
     // Input management
     private lateinit var inputRouter: InputRouter
@@ -74,6 +82,7 @@ class MainActivity : AppCompatActivity() {
         storageManager = StorageManager(applicationContext)
         permissionManager = PermissionManager(applicationContext)
         gameLibraryManager = GameLibraryManager(applicationContext, storageManager)
+        gameManager = GameManager(applicationContext, lifecycleScope)
     }
     
     private fun initializeInputRouter() {
@@ -181,15 +190,69 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeGameLibrary() {
         lifecycleScope.launch {
-            when (val result = gameLibraryManager.initializeGameLibrary()) {
-                is GameLibraryResult.Success -> {
-                    binding.statusText.text = getString(R.string.game_library_loading, result.games.size)
-                    // You can display game library info here
-                }
-                is GameLibraryResult.Error -> {
-                    binding.statusText.text = getString(R.string.game_library_error, result.message)
-                }
+            gameManager.initialize()
+            observeGameLibrary()
+            gameManager.startPeriodicLibraryRefresh()
+        }
+    }
+    
+    private fun observeGameLibrary() {
+        lifecycleScope.launch {
+            gameManager.games.collectLatest { games ->
+                updateGameLibraryUI(games)
             }
+        }
+        
+        lifecycleScope.launch {
+            gameManager.stats.collectLatest { stats ->
+                updateGameLibraryStats(stats)
+            }
+        }
+        
+        lifecycleScope.launch {
+            gameManager.operations.collectLatest { operations ->
+                updateInstallOperationsUI(operations)
+            }
+        }
+    }
+    
+    private fun updateGameLibraryUI(games: List<SteamGame>) {
+        binding.statusText.text = getString(R.string.game_library_loaded, games.size)
+    }
+    
+    private fun updateGameLibraryStats(stats: GameLibraryStats) {
+        val statsText = getString(
+            R.string.game_library_stats,
+            stats.installedGames,
+            stats.totalGames,
+            formatBytes(stats.totalSize),
+            stats.updatesAvailable
+        )
+        binding.gameLibraryStatsText.text = statsText
+    }
+    
+    private fun updateInstallOperationsUI(operations: List<InstallOperation>) {
+        if (operations.isEmpty()) {
+            binding.operationsPanel.visibility = View.GONE
+            return
+        }
+        
+        binding.operationsPanel.visibility = View.VISIBLE
+        val activeOps = operations.filter { 
+            it.status == OperationStatus.InProgress || 
+            it.status == OperationStatus.Paused 
+        }
+        
+        if (activeOps.isNotEmpty()) {
+            val activeOp = activeOps.first()
+            binding.operationProgressText.text = getString(
+                R.string.operation_progress,
+                activeOp.gameName,
+                activeOp.operationType.name,
+                (activeOp.progress * 100).toInt()
+            )
+            binding.operationProgressBar.progress = (activeOp.progress * 100).toInt()
+            binding.operationStatusText.text = activeOp.message
         }
     }
 
@@ -279,10 +342,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        private const val PERMISSION_REQUEST_CODE = 1001
-    }
-
     override fun onPause() {
         controllerMonitor.stop()
         inputRouter.stop()
@@ -349,6 +408,18 @@ class MainActivity : AppCompatActivity() {
             } else {
                 binding.onScreenControls.visibility = View.GONE
             }
+        }
+        
+        binding.browseGamesButton.setOnClickListener {
+            showGameLibraryDialog()
+        }
+        
+        binding.gameLibraryFilterButton.setOnClickListener {
+            showGameFilterDialog()
+        }
+        
+        binding.gameLibrarySortButton.setOnClickListener {
+            showGameSortDialog()
         }
     }
 
@@ -456,5 +527,201 @@ class MainActivity : AppCompatActivity() {
         val minutes = totalSeconds / 60L
         val seconds = totalSeconds % 60L
         return String.format(Locale.US, "%02d:%02d", minutes, seconds)
+    }
+    
+    private fun formatBytes(bytes: Long): String {
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        var size = bytes.toDouble()
+        var unitIndex = 0
+        while (size >= 1024 && unitIndex < units.size - 1) {
+            size /= 1024
+            unitIndex++
+        }
+        return String.format(Locale.US, "%.2f %s", size, units[unitIndex])
+    }
+    
+    private fun showGameLibraryDialog() {
+        val games = gameManager.getFilteredGames()
+        if (games.isEmpty()) {
+            AlertDialog.Builder(this)
+                .setTitle("Game Library")
+                .setMessage("No games found in your Steam library")
+                .setPositiveButton("OK") { _, _ -> }
+                .show()
+            return
+        }
+        
+        val gameNames = games.map { it.displayName }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle("Game Library (${games.size} games)")
+            .setItems(gameNames) { _, which ->
+                val selectedGame = games[which]
+                showGameManagementDialog(selectedGame)
+            }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .show()
+    }
+    
+    private fun showGameManagementDialog(game: SteamGame) {
+        val options = mutableListOf<String>()
+        val actions = mutableListOf<() -> Unit>()
+        
+        if (!game.isInstalled) {
+            options.add("Install")
+            actions.add {
+                lifecycleScope.launch {
+                    gameManager.installGame(game.appId, game.displayName)
+                }
+            }
+        } else {
+            options.add("Play")
+            actions.add {
+                // Launch the game - this would be integrated with GameLauncher
+                AlertDialog.Builder(this)
+                    .setTitle("Game Launch")
+                    .setMessage("Game launch feature coming soon")
+                    .setPositiveButton("OK") { _, _ -> }
+                    .show()
+            }
+            
+            options.add("Update")
+            actions.add {
+                lifecycleScope.launch {
+                    gameManager.updateGame(game.appId, game.displayName)
+                }
+            }
+            
+            options.add("Uninstall")
+            actions.add {
+                AlertDialog.Builder(this)
+                    .setTitle("Uninstall Game")
+                    .setMessage("Are you sure you want to uninstall ${game.displayName}?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        lifecycleScope.launch {
+                            gameManager.uninstallGame(game.appId, game.displayName)
+                        }
+                    }
+                    .setNegativeButton("No") { _, _ -> }
+                    .show()
+            }
+        }
+        
+        options.add(if (game.isFavorite) "Remove from Favorites" else "Add to Favorites")
+        actions.add {
+            lifecycleScope.launch {
+                gameManager.toggleGameFavorite(game.appId)
+            }
+        }
+        
+        options.add("View Details")
+        actions.add {
+            showGameDetailsDialog(game)
+        }
+        
+        AlertDialog.Builder(this)
+            .setTitle(game.displayName)
+            .setItems(options.toTypedArray()) { _, which ->
+                actions[which]()
+            }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .show()
+    }
+    
+    private fun showGameDetailsDialog(game: SteamGame) {
+        val details = StringBuilder()
+        details.append("Name: ${game.displayName}\n")
+        details.append("App ID: ${game.appId}\n")
+        details.append("Status: ${if (game.isInstalled) "Installed" else "Not Installed"}\n")
+        if (game.isInstalled) {
+            details.append("Size: ${formatBytes(game.sizeOnDisk)}\n")
+        }
+        if (game.playtime > 0) {
+            details.append("Play Time: ${game.playtime / 60} hours\n")
+        }
+        if (game.hasCloudSaves) {
+            details.append("Cloud Saves: Yes (${formatBytes(game.cloudSaveSize)})\n")
+        }
+        details.append("Favorite: ${if (game.isFavorite) "Yes" else "No"}\n")
+        
+        AlertDialog.Builder(this)
+            .setTitle("Game Details")
+            .setMessage(details.toString())
+            .setPositiveButton("OK") { _, _ -> }
+            .show()
+    }
+    
+    private fun showGameFilterDialog() {
+        val filterOptions = listOf(
+            "All Games",
+            "Installed",
+            "Not Installed",
+            "Favorites",
+            "Needs Update",
+            "Cloud Saves"
+        )
+        
+        val filterTypes = listOf(
+            GameFilterType.All,
+            GameFilterType.Installed,
+            GameFilterType.NotInstalled,
+            GameFilterType.Favorites,
+            GameFilterType.NeedingUpdate,
+            GameFilterType.WithCloudSaves
+        )
+        
+        var selectedFilters = setOf(GameFilterType.All)
+        val checkedItems = BooleanArray(filterOptions.size)
+        checkedItems[0] = true
+        
+        AlertDialog.Builder(this)
+            .setTitle("Filter Games")
+            .setMultiChoiceItems(
+                filterOptions.toTypedArray(),
+                checkedItems
+            ) { _, which, isChecked ->
+                checkedItems[which] = isChecked
+                selectedFilters = filterTypes.filterIndexed { index, _ -> checkedItems[index] }.toSet()
+            }
+            .setPositiveButton("Apply") { _, _ ->
+                lifecycleScope.launch {
+                    if (selectedFilters.isNotEmpty()) {
+                        gameManager.setGameFilters(selectedFilters)
+                    }
+                }
+            }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .show()
+    }
+    
+    private fun showGameSortDialog() {
+        val sortOptions = listOf(
+            "Name",
+            "Install Date",
+            "Play Time",
+            "Size",
+            "Recently Played"
+        )
+        
+        val sortTypes = listOf(
+            GameSortType.Name,
+            GameSortType.InstallDate,
+            GameSortType.PlayTime,
+            GameSortType.Size,
+            GameSortType.RecentlyPlayed
+        )
+        
+        AlertDialog.Builder(this)
+            .setTitle("Sort Games")
+            .setItems(sortOptions.toTypedArray()) { _, which ->
+                lifecycleScope.launch {
+                    gameManager.setGameSortType(sortTypes[which])
+                }
+            }
+            .setNegativeButton("Cancel") { _, _ -> }
+            .show()
+    }
+
+    companion object {
+        private const val PERMISSION_REQUEST_CODE = 1001
     }
 }

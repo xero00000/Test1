@@ -52,4 +52,16 @@
     <string name="touch_input_enabled">Touch input enabled</string>
     <string name="keyboard_input_enabled">Keyboard input enabled</string>
     <string name="input_mapping_configured">Input mappings configured</string>
+
+    <!-- Game Management -->
+    <string name="game_library_title">Game Library</string>
+    <string name="game_library_loaded">Loaded %1$d games from Steam library</string>
+    <string name="game_library_stats">%1$d installed / %2$d total | Size: %3$s | Updates: %4$d</string>
+    <string name="game_library_stats_placeholder">Loading game library...</string>
+    <string name="browse_games_button">Browse Game Library</string>
+    <string name="filter_button">Filter</string>
+    <string name="sort_button">Sort</string>
+    <string name="operation_progress">%1$s - %2$s (%3$d%%)</string>
+    <string name="operation_progress_placeholder">Game operation in progress...</string>
+    <string name="operation_status_placeholder">Initializing...</string>
 </resources>
