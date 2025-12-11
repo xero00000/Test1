@@ -9,6 +9,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.LinkOption
 
 class GameLibraryManager(
     private val context: Context,
@@ -410,4 +412,17 @@ sealed class ScanUpdatesResult {
         val totalGames: Int
     ) : ScanUpdatesResult()
     data class Error(val message: String) : ScanUpdatesResult()
+}
+
+sealed class CleanupResult {
+    data class Success(val bytesFreed: Long) : CleanupResult()
+    data class Error(val message: String) : CleanupResult()
+}
+
+private fun File.isSymlink(): Boolean {
+    return try {
+        Files.isSymbolicLink(this.toPath())
+    } catch (e: Exception) {
+        false
+    }
 }

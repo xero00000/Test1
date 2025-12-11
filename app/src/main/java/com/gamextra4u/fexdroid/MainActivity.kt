@@ -216,11 +216,6 @@ class MainActivity : AppCompatActivity() {
         private const val PERMISSION_REQUEST_CODE = 1001
     }
 
-    override fun onResume() {
-        super.onResume()
-        controllerMonitor.start()
-    }
-
     override fun onPause() {
         controllerMonitor.stop()
         super.onPause()
