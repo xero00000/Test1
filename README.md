@@ -83,6 +83,11 @@ All dependencies use current stable versions:
 - Full AndroidX support
 - Proper lifecycle management
 - Steam Big Picture auto-launcher with controller awareness
+- x86 game execution runtime with FEX emulation
+- Process lifecycle management for games
+- Comprehensive error handling and crash detection
+- Multi-game support (serial or concurrent execution)
+- Real-time game logging and monitoring
 
 ## Steam Big Picture Auto-launch
 
@@ -92,6 +97,18 @@ The Android client now boots directly into Steam Big Picture mode as soon as the
 2. A generated `steam-big-picture.sh` script injects the right `-tenfoot`, `-bigpicture`, and controller flags before delegating to the Steam runtime.
 3. The launcher restores any saved credentials or Guard tokens, enabling persistent sessions across app launches.
 4. Real-time logs and controller status are surfaced in the UI so users can confirm input readiness and diagnose launch issues.
+
+## x86 Game Execution Runtime
+
+FEXDroid includes a comprehensive runtime system for executing x86/x86_64 games via FEX emulation:
+
+1. **Game Executor**: Executes individual game processes with full lifecycle management
+2. **Process Manager**: Manages multiple game processes with serial or concurrent execution modes
+3. **Launch Handler**: Intercepts game launch requests from Steam Big Picture
+4. **Error Handling**: Comprehensive crash detection and error logging
+5. **Real-time Monitoring**: Live game output streaming and process monitoring
+
+For detailed documentation, see [RUNTIME_SYSTEM.md](RUNTIME_SYSTEM.md).
 
 ## Testing
 
