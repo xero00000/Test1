@@ -6,6 +6,8 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import android.view.InputDevice
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
@@ -14,7 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.gamextra4u.fexdroid.databinding.ActivityMainBinding
-import com.gamextra4u.fexdroid.input.ControllerMonitor
+import com.gamextra4u.fexdroid.input.*
 import com.gamextra4u.fexdroid.steam.SteamLaunchState
 import com.gamextra4u.fexdroid.steam.SteamLauncher
 import com.gamextra4u.fexdroid.steam.SteamSessionStore
@@ -33,6 +35,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var storageManager: StorageManager
     private lateinit var permissionManager: PermissionManager
     private lateinit var gameLibraryManager: GameLibraryManager
+    
+    // Input management
+    private lateinit var inputRouter: InputRouter
+    private lateinit var inputState: InputState
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +60,9 @@ class MainActivity : AppCompatActivity() {
             updateControllerStatus(devices)
         }
 
+        // Initialize input router
+        initializeInputRouter()
+
         populateSavedCredentials()
         setupInteractions()
         observeSteamState()
@@ -65,6 +74,63 @@ class MainActivity : AppCompatActivity() {
         storageManager = StorageManager(applicationContext)
         permissionManager = PermissionManager(applicationContext)
         gameLibraryManager = GameLibraryManager(applicationContext, storageManager)
+    }
+    
+    private fun initializeInputRouter() {
+        inputRouter = InputRouter(applicationContext, lifecycleScope)
+        
+        // Configure input mappings
+        inputRouter.configureControllerMappings(
+            ControllerMappingConfig(
+                buttonMappings = mapOf(
+                    KeyEvent.KEYCODE_BUTTON_A to "KEY_Z",
+                    KeyEvent.KEYCODE_BUTTON_B to "KEY_X",
+                    KeyEvent.KEYCODE_BUTTON_X to "KEY_A",
+                    KeyEvent.KEYCODE_BUTTON_Y to "KEY_S",
+                    KeyEvent.KEYCODE_BUTTON_L1 to "KEY_Q",
+                    KeyEvent.KEYCODE_BUTTON_R1 to "KEY_E",
+                    KeyEvent.KEYCODE_BUTTON_START to "KEY_ENTER",
+                    KeyEvent.KEYCODE_BUTTON_SELECT to "KEY_ESC",
+                    KeyEvent.KEYCODE_BUTTON_THUMBL to "KEY_SPACE",
+                    KeyEvent.KEYCODE_BUTTON_THUMBR to "KEY_TAB"
+                ),
+                analogMappings = mapOf(
+                    "LEFT_X" to "MOUSE_X",
+                    "LEFT_Y" to "MOUSE_Y",
+                    "RIGHT_X" to "KEY_ARROWS",
+                    "RIGHT_Y" to "KEY_ARROWS"
+                ),
+                deadzone = 0.15f
+            )
+        )
+        
+        inputRouter.configureTouchMappings(
+            TouchMappingConfig(
+                mouseMode = true,
+                gesturesEnabled = true,
+                virtualKeyboardEnabled = false
+            )
+        )
+        
+        // Set up input event listeners
+        inputRouter.setOnInputDevicesChangedListener { devices ->
+            updateInputDevicesStatus(devices)
+        }
+        
+        inputRouter.setOnControllerStateChangedListener { hasControllers ->
+            updateControllerState(hasControllers)
+        }
+        
+        inputRouter.setOnInputStateChangedListener { state ->
+            inputState = state
+            updateInputStateUI(state)
+        }
+        
+        // Attach on-screen controls
+        inputRouter.attachOnScreenControls(binding.onScreenControls)
+        
+        // Start the input router
+        inputRouter.start()
     }
 
     private fun checkAndRequestPermissions() {
@@ -200,6 +266,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         controllerMonitor.start()
+        inputRouter.start()
         
         // Check if permissions were granted after returning from settings
         if (this::permissionManager.isInitialized) {
@@ -218,7 +285,26 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         controllerMonitor.stop()
+        inputRouter.stop()
         super.onPause()
+    }
+    
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        // Route touch events through the input router
+        val handled = inputRouter.processMotionEvent(event)
+        return handled || super.dispatchTouchEvent(event)
+    }
+    
+    override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        // Route controller/joystick events through the input router
+        val handled = inputRouter.processMotionEvent(event)
+        return handled || super.dispatchGenericMotionEvent(event)
+    }
+    
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Route key events through the input router
+        val handled = inputRouter.processKeyEvent(event)
+        return handled || super.dispatchKeyEvent(event)
     }
 
     private fun applyWindowInsets() {
@@ -254,6 +340,15 @@ class MainActivity : AppCompatActivity() {
             binding.usernameInput.text?.clear()
             binding.passwordInput.text?.clear()
             binding.rememberSessionSwitch.isChecked = false
+        }
+        
+        binding.onScreenControlsSwitch.setOnCheckedChangeListener { _, isChecked ->
+            inputRouter.setOnScreenControlsEnabled(isChecked)
+            if (isChecked) {
+                binding.onScreenControls.visibility = View.VISIBLE
+            } else {
+                binding.onScreenControls.visibility = View.GONE
+            }
         }
     }
 
@@ -307,6 +402,52 @@ class MainActivity : AppCompatActivity() {
         }
         val names = devices.joinToString(separator = ", ") { it.name }
         binding.controllerStatus.text = getString(R.string.controller_status, names)
+    }
+    
+    private fun updateInputDevicesStatus(devices: List<InputDevice>) {
+        if (devices.isEmpty()) {
+            binding.controllerStatus.setText(R.string.no_controllers)
+            return
+        }
+        val controllerDevices = devices.filter { 
+            it.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
+            it.sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK
+        }
+        
+        if (controllerDevices.isEmpty()) {
+            binding.controllerStatus.setText(R.string.touch_input_enabled)
+            return
+        }
+        
+        val names = controllerDevices.joinToString(separator = ", ") { it.name }
+        binding.controllerStatus.text = getString(R.string.controllers_detected, names)
+    }
+    
+    private fun updateControllerState(hasControllers: Boolean) {
+        // Update UI based on controller state
+        binding.onScreenControlsSwitch.isEnabled = !hasControllers
+        if (hasControllers) {
+            binding.onScreenControlsSwitch.isChecked = false
+            binding.onScreenControls.visibility = View.GONE
+        }
+    }
+    
+    private fun updateInputStateUI(state: InputState) {
+        // Update UI to reflect current input state
+        when (state.primarySource) {
+            InputSource.CONTROLLER -> {
+                binding.controllerStatus.text = getString(R.string.input_mapping_configured)
+            }
+            InputSource.TOUCH -> {
+                binding.controllerStatus.text = getString(R.string.touch_input_enabled)
+            }
+            InputSource.KEYBOARD -> {
+                binding.controllerStatus.text = getString(R.string.keyboard_input_enabled)
+            }
+            else -> {
+                // Keep existing status
+            }
+        }
     }
 
     private fun formatDuration(durationMillis: Long): String {

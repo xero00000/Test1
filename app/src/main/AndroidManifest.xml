@@ -29,6 +29,9 @@
     <!-- Features -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.hardware.touchscreen.multitouch" android:required="false" />
+    <uses-feature android:name="android.hardware.gamepad" android:required="false" />
+    <uses-feature android:name="android.hardware.joystick" android:required="false" />
+    <uses-feature android:name="android.hardware.vr.haptics" android:required="false" />
 
     <application
         android:allowBackup="true"

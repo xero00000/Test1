@@ -40,4 +40,16 @@
     <string name="game_library_error">Game library error: %1$s</string>
     <string name="storage_cleanup_success">Cleaned up %1$s of space</string>
     <string name="storage_cleanup_error">Cleanup error: %1$s</string>
+
+    <!-- Input and Controls -->
+    <string name="on_screen_controls_label">Enable on-screen virtual controls</string>
+    <string name="input_router_started">Input router started</string>
+    <string name="input_router_stopped">Input router stopped</string>
+    <string name="input_device_connected">Input device connected: %1$s</string>
+    <string name="input_device_disconnected">Input device disconnected: %1$s</string>
+    <string name="controllers_detected">Controllers: %1$s</string>
+    <string name="no_controllers">No controllers detected</string>
+    <string name="touch_input_enabled">Touch input enabled</string>
+    <string name="keyboard_input_enabled">Keyboard input enabled</string>
+    <string name="input_mapping_configured">Input mappings configured</string>
 </resources>
