@@ -21,4 +21,23 @@
     <string name="controller_status">Controllers detected: %1$s</string>
     <string name="controller_status_none">No controllers detected</string>
     <string name="log_empty_placeholder">Logs will appear here once Steam starts…</string>
+
+    <!-- Storage and Permission Strings -->
+    <string name="storage_initializing">Initializing game library storage…</string>
+    <string name="storage_initialized">Storage initialized successfully</string>
+    <string name="storage_error">Storage error: %1$s</string>
+    <string name="permission_required">Storage permission required: %1$s</string>
+    <string name="permission_dialog_title">Storage Permission Required</string>
+    <string name="permission_dialog_message">FEXDroid needs permission to access all files on your device to manage Steam games. This is required for Android 11 and above.</string>
+    <string name="permission_grant_button">Grant Permission</string>
+    <string name="permission_cancel_button">Cancel</string>
+    <string name="permission_retry_button">Retry</string>
+    <string name="permission_continue_button">Continue</string>
+    <string name="permission_error_title">Permission Error</string>
+    <string name="partial_permission_title">Some Permissions Denied</string>
+    <string name="partial_permission_message">Some permissions were denied. The app may not function properly without all required permissions.</string>
+    <string name="game_library_loading">Loading game library: %1$d games</string>
+    <string name="game_library_error">Game library error: %1$s</string>
+    <string name="storage_cleanup_success">Cleaned up %1$s of space</string>
+    <string name="storage_cleanup_error">Cleanup error: %1$s</string>
 </resources>
