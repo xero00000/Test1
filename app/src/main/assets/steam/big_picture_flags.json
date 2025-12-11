@@ -1,0 +1,11 @@
+{
+  "flags": [
+    "-tenfoot",
+    "-bigpicture",
+    "-fulldesktopres",
+    "-steamosurl",
+    "steam://open/bigpicture",
+    "-enableremotecontrollers",
+    "-nochatui"
+  ]
+}

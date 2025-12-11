@@ -82,6 +82,16 @@ All dependencies use current stable versions:
 - Kotlin coroutines for async operations
 - Full AndroidX support
 - Proper lifecycle management
+- Steam Big Picture auto-launcher with controller awareness
+
+## Steam Big Picture Auto-launch
+
+The Android client now boots directly into Steam Big Picture mode as soon as the app starts:
+
+1. Bundled FEXDroid scripts, Vulkan shims, and the qemu-x86_64 binary are copied from the APK assets to app storage on first launch.
+2. A generated `steam-big-picture.sh` script injects the right `-tenfoot`, `-bigpicture`, and controller flags before delegating to the Steam runtime.
+3. The launcher restores any saved credentials or Guard tokens, enabling persistent sessions across app launches.
+4. Real-time logs and controller status are surfaced in the UI so users can confirm input readiness and diagnose launch issues.
 
 ## Testing
 

@@ -1,7 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">FEXDroid</string>
-    <string name="app_description">FEX-Emu x86_64 Emulator for Android</string>
-    <string name="status_ready">FEXDroid is ready</string>
-    <string name="run_test">Run Test Binary</string>
+    <string name="app_description">FEX-Emu x86_64 emulator with seamless Steam Big Picture auto-launch.</string>
+
+    <string name="status_ready">Steam Big Picture auto-launch ready</string>
+    <string name="status_idle">Steam launcher is idle</string>
+    <string name="status_preparing">Preparing Steam: %1$s</string>
+    <string name="status_launching">Launching Steam Big Picture…</string>
+    <string name="status_running">Steam Big Picture active%1$s</string>
+    <string name="status_completed">Last session duration: %1$s</string>
+    <string name="status_failed">Steam launch failed: %1$s</string>
+
+    <string name="steam_username_hint">Steam account name</string>
+    <string name="steam_password_hint">Steam password or Guard token</string>
+    <string name="remember_session_label">Remember session for faster login</string>
+    <string name="save_credentials">Save login &amp; arm Big Picture</string>
+    <string name="relaunch_steam">Restart Steam Big Picture</string>
+    <string name="clear_session">Clear saved session</string>
+    <string name="steam_logs_title">Steam launch log</string>
+    <string name="controller_status">Controllers detected: %1$s</string>
+    <string name="controller_status_none">No controllers detected</string>
+    <string name="log_empty_placeholder">Logs will appear here once Steam starts…</string>
 </resources>
