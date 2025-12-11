@@ -40,6 +40,12 @@ android {
         viewBinding = true
     }
 
+    sourceSets {
+        getByName("main") {
+            assets.srcDirs("src/main/assets", "../FEXDroid")
+        }
+    }
+
     ndkVersion = "26.1.10909125"
 }
 
