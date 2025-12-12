@@ -611,7 +611,7 @@ class OnScreenControls @JvmOverloads constructor(
         onStickMove = listener
     }
     
-    fun setAlpha(alpha: Float) {
+    override fun setAlpha(alpha: Float) {
         paint.alpha = (alpha * 255).toInt()
         strokePaint.alpha = (alpha * 255).toInt()
         textPaint.alpha = (alpha * 255).toInt()
