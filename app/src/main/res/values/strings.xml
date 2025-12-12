@@ -64,4 +64,12 @@
     <string name="operation_progress">%1$s - %2$s (%3$d%%)</string>
     <string name="operation_progress_placeholder">Game operation in progress...</string>
     <string name="operation_status_placeholder">Initializing...</string>
+    
+    <!-- Price Monitoring -->
+    <string name="price_monitoring_active">Price Monitoring Active</string>
+    <string name="price_monitoring_checking">Checking game prices in the background...</string>
+    <string name="price_monitoring_scheduled">Price monitoring scheduled</string>
+    <string name="price_monitoring_paused">Price monitoring paused</string>
+    <string name="price_monitoring_resumed">Price monitoring resumed</string>
+    <string name="price_monitoring_boot_rescheduled">Price monitoring rescheduled after boot</string>
 </resources>
