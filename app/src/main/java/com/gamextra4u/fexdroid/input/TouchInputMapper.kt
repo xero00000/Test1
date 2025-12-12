@@ -356,38 +356,38 @@ class TouchInputMapper(
 /**
  * Sealed hierarchy for touch input events
  */
-sealed class TouchInputEvent(val timestamp: Long) {
+sealed class TouchInputEvent(open val timestamp: Long) {
     data class TouchStart(
         val x: Float,
         val y: Float,
         val touchCount: Int,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class TouchEnd(
         val x: Float,
         val y: Float,
         val finalTouchCount: Int,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class Tap(
         val x: Float,
         val y: Float,
         val tapCount: Int,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class DoubleTap(
         val x: Float,
         val y: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class LongPress(
         val x: Float,
         val y: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class Drag(
@@ -398,7 +398,7 @@ sealed class TouchInputEvent(val timestamp: Long) {
         val deltaX: Float,
         val deltaY: Float,
         val touchCount: Int,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class Fling(
@@ -409,7 +409,7 @@ sealed class TouchInputEvent(val timestamp: Long) {
         val velocityX: Float,
         val velocityY: Float,
         val direction: String,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class MouseMove(
@@ -417,7 +417,7 @@ sealed class TouchInputEvent(val timestamp: Long) {
         val y: Float,
         val deltaX: Float,
         val deltaY: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class MouseClick(
@@ -425,12 +425,12 @@ sealed class TouchInputEvent(val timestamp: Long) {
         val x: Float,
         val y: Float,
         val clickCount: Int,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class MouseRelease(
         val button: String,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class Pinch(
@@ -438,19 +438,19 @@ sealed class TouchInputEvent(val timestamp: Long) {
         val centerY: Float,
         val scaleFactor: Float,
         val cumulativeScale: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class PinchEnd(
         val centerX: Float,
         val centerY: Float,
         val finalScale: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
     
     data class TwoFingerScroll(
         val deltaX: Float,
         val deltaY: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : TouchInputEvent(timestamp)
 }
