@@ -359,7 +359,7 @@ sealed class ControllerInputEvent(val timestamp: Long) {
         val deviceName: String,
         val originalKeyCode: Int,
         val mappedKey: String,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
     
     data class ButtonReleased(
@@ -367,7 +367,7 @@ sealed class ControllerInputEvent(val timestamp: Long) {
         val deviceName: String,
         val originalKeyCode: Int,
         val mappedKey: String,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
     
     data class AnalogMovement(
@@ -377,13 +377,13 @@ sealed class ControllerInputEvent(val timestamp: Long) {
         val x: Float,
         val y: Float,
         val intensity: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
     
     data class AnalogReleased(
         val deviceId: Int,
         val analogType: String,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
     
     data class TriggerPressed(
@@ -391,13 +391,13 @@ sealed class ControllerInputEvent(val timestamp: Long) {
         val deviceName: String,
         val triggerType: String,
         val intensity: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
     
     data class TriggerReleased(
         val deviceId: Int,
         val triggerType: String,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
     
     data class JoystickAxis(
@@ -405,6 +405,6 @@ sealed class ControllerInputEvent(val timestamp: Long) {
         val deviceName: String,
         val axis: Int,
         val value: Float,
-        timestamp: Long
+        override val timestamp: Long
     ) : ControllerInputEvent(timestamp)
 }

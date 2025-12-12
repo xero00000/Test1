@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -14,6 +15,7 @@ import java.io.ObjectOutputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.math.abs
 
 /**
  * Coordinates all input sources and routes them to the FEX emulation environment
@@ -177,7 +179,7 @@ class InputRouter(
      */
     fun setOnScreenControlsEnabled(enabled: Boolean) {
         inputManager.setOnScreenControlsEnabled(enabled)
-        onScreenControls?.visibility = if (enabled) VISIBLE else GONE
+        onScreenControls?.visibility = if (enabled) View.VISIBLE else View.GONE
         
         Log.d(TAG, "On-screen controls ${if (enabled) "enabled" else "disabled"}")
     }
@@ -209,7 +211,7 @@ class InputRouter(
             primarySource = currentPrimarySource,
             connectedDevices = inputManager.getConnectedDevices(),
             hasControllers = inputManager.hasConnectedControllers(),
-            onScreenControlsVisible = onScreenControls?.visibility == VISIBLE
+            onScreenControlsVisible = onScreenControls?.visibility == View.VISIBLE
         )
     }
     
@@ -372,7 +374,7 @@ class InputRouter(
         val mappedEvent = applyInputMappings(event, source)
         
         // Send to on-screen controls if active
-        if (source == InputSource.TOUCH && onScreenControls?.visibility == VISIBLE) {
+        if (source == InputSource.TOUCH && onScreenControls?.visibility == View.VISIBLE) {
             // Touch events might be consumed by on-screen controls
             return
         }
@@ -603,8 +605,8 @@ sealed class InputEvent(val source: InputSource, val timestamp: Long) {
         val buttonName: String,
         val keyCode: Int,
         var mappedKey: String,
-        source: InputSource,
-        timestamp: Long
+        override val source: InputSource,
+        override val timestamp: Long
     ) : InputEvent(source, timestamp)
     
     data class AnalogEvent(
@@ -613,8 +615,8 @@ sealed class InputEvent(val source: InputSource, val timestamp: Long) {
         val y: Float,
         val intensity: Float,
         var deadzone: Float,
-        source: InputSource,
-        timestamp: Long
+        override val source: InputSource,
+        override val timestamp: Long
     ) : InputEvent(source, timestamp)
     
     data class TouchEvent(
@@ -623,13 +625,13 @@ sealed class InputEvent(val source: InputSource, val timestamp: Long) {
         val y: Float,
         val touchCount: Int,
         var mouseMode: Boolean,
-        source: InputSource,
-        timestamp: Long
+        override val source: InputSource,
+        override val timestamp: Long
     ) : InputEvent(source, timestamp)
     
     data class GenericEvent(
         val eventType: String,
-        source: InputSource,
-        timestamp: Long
+        override val source: InputSource,
+        override val timestamp: Long
     ) : InputEvent(source, timestamp)
 }
