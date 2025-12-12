@@ -1,7 +1,7 @@
 package com.gamextra4u.fexdroid.input
 
 import android.content.Context
-import android.hardware.input.InputManager
+import android.hardware.input.InputManager as AndroidInputManager
 import android.os.Handler
 import android.os.Looper
 import android.view.InputDevice
@@ -19,9 +19,9 @@ class InputManager(
     private val context: Context,
     private val onInputDevicesChanged: (List<InputDevice>) -> Unit = {},
     private val onControllerStateChanged: (Boolean) -> Unit = {}
-) : InputManager.InputDeviceListener {
+) : AndroidInputManager.InputDeviceListener {
 
-    private val inputManager = context.getSystemService(Context.INPUT_SERVICE) as InputManager
+    private val inputManager = context.getSystemService(Context.INPUT_SERVICE) as AndroidInputManager
     private val handler = Handler(Looper.getMainLooper())
     
     private val controllerMonitor = ControllerMonitor(context) { devices ->

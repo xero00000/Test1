@@ -71,22 +71,22 @@ class SteamEnvironmentInstaller(
         return """
             #!/system/bin/sh
             set -e
-            SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-            INSTALL_ROOT="$(dirname "$SCRIPT_DIR")"
-            STEAM_HOME="$INSTALL_ROOT/steam-home"
-            LOG_DIR="$INSTALL_ROOT/logs"
-            LAUNCH_LOG="$LOG_DIR/steam-launch.log"
-            mkdir -p "$LOG_DIR"
-            mkdir -p "$STEAM_HOME"
-            export HOME="$STEAM_HOME"
-            export LD_LIBRARY_PATH="$SCRIPT_DIR:$LD_LIBRARY_PATH"
-            export STEAM_RUNTIME="$INSTALL_ROOT/runtime"
-            export STEAM_CONFIG="$STEAM_HOME/config"
-            echo "[FEXDroid] Launching Steam Big Picture with flags: $flagLine" >> "$LAUNCH_LOG"
-            if [ -x "$SCRIPT_DIR/qemu-x86_64" ] && [ -f "$STEAM_HOME/steam.sh" ]; then
-                exec "$SCRIPT_DIR/qemu-x86_64" "$STEAM_HOME/steam.sh" $flagLine "$@"
-            elif [ -x "$SCRIPT_DIR/qemu-x86_64" ]; then
-                echo "[FEXDroid] Steam runtime not provisioned yet. Big Picture launch deferred." >> "$LAUNCH_LOG"
+            SCRIPT_DIR="${'$'}(cd "${'$'}(dirname "${'$'}0")" && pwd)"
+            INSTALL_ROOT="${'$'}(dirname "${'$'}SCRIPT_DIR")"
+            STEAM_HOME="${'$'}INSTALL_ROOT/steam-home"
+            LOG_DIR="${'$'}INSTALL_ROOT/logs"
+            LAUNCH_LOG="${'$'}LOG_DIR/steam-launch.log"
+            mkdir -p "${'$'}LOG_DIR"
+            mkdir -p "${'$'}STEAM_HOME"
+            export HOME="${'$'}STEAM_HOME"
+            export LD_LIBRARY_PATH="${'$'}SCRIPT_DIR:${'$'}LD_LIBRARY_PATH"
+            export STEAM_RUNTIME="${'$'}INSTALL_ROOT/runtime"
+            export STEAM_CONFIG="${'$'}STEAM_HOME/config"
+            echo "[FEXDroid] Launching Steam Big Picture with flags: $flagLine" >> "${'$'}LAUNCH_LOG"
+            if [ -x "${'$'}SCRIPT_DIR/qemu-x86_64" ] && [ -f "${'$'}STEAM_HOME/steam.sh" ]; then
+                exec "${'$'}SCRIPT_DIR/qemu-x86_64" "${'$'}STEAM_HOME/steam.sh" $flagLine "${'$'}@"
+            elif [ -x "${'$'}SCRIPT_DIR/qemu-x86_64" ]; then
+                echo "[FEXDroid] Steam runtime not provisioned yet. Big Picture launch deferred." >> "${'$'}LAUNCH_LOG"
                 sleep 2
                 exit 0
             else
