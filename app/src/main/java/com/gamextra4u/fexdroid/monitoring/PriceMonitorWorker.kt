@@ -10,15 +10,17 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.*
 import com.gamextra4u.fexdroid.R
+import com.gamextra4u.fexdroid.retailer.service.PriceMonitorService
 import kotlinx.coroutines.delay
 import kotlin.coroutines.cancellation.CancellationException
 
 class PriceMonitorWorker(
-    context: Context,
+    private val context: Context,
     workerParams: WorkerParameters
 ) : CoroutineWorker(context, workerParams) {
 
     private var wakeLock: PowerManager.WakeLock? = null
+    private val priceMonitorService by lazy { PriceMonitorService(context) }
     
     private var priceScraper: PriceScraperInterface? = null
     private var priceRepository: PriceRepositoryInterface? = null
@@ -66,17 +68,31 @@ class PriceMonitorWorker(
     }
 
     private suspend fun performActualMonitoring() {
-        Log.d(TAG, "Running actual price monitoring with scraper and repository")
+        Log.d(TAG, "Running actual price monitoring with retailer service")
         
         try {
             val watchedGames = priceRepository?.getWatchedGames() ?: emptyList()
             Log.d(TAG, "Monitoring ${watchedGames.size} games")
             
-            val priceUpdates = priceScraper?.scrapePrices() ?: emptyList()
-            Log.d(TAG, "Scraped ${priceUpdates.size} price updates")
-            
-            priceRepository?.savePrices(priceUpdates)
-            Log.d(TAG, "Saved price updates to repository")
+            if (priceScraper != null && priceRepository != null) {
+                Log.d(TAG, "Using injected scraper and repository")
+                val priceUpdates = priceScraper?.scrapePrices() ?: emptyList()
+                Log.d(TAG, "Scraped ${priceUpdates.size} price updates")
+                priceRepository?.savePrices(priceUpdates)
+                Log.d(TAG, "Saved price updates to repository")
+            } else {
+                Log.d(TAG, "Using PriceMonitorService for fetching prices")
+                val priceSnapshots = priceMonitorService.fetchPricesForProducts(
+                    watchedGames.map { gameId ->
+                        com.gamextra4u.fexdroid.retailer.domain.ProductDescriptor(
+                            id = gameId,
+                            title = "",
+                            url = ""
+                        )
+                    }
+                )
+                Log.d(TAG, "Fetched ${priceSnapshots.size} price snapshots from retailers")
+            }
         } catch (e: Exception) {
             Log.e(TAG, "Error during actual monitoring", e)
         }
