@@ -363,6 +363,9 @@ class InputRouter(
             InputSource.KEYBOARD -> synchronized(keyboardEventQueue) {
                 keyboardEventQueue.add(event)
             }
+            InputSource.ON_SCREEN -> synchronized(touchEventQueue) {
+                touchEventQueue.add(event)
+            }
         }
     }
     
@@ -412,6 +415,15 @@ class InputRouter(
             }
             
             InputSource.KEYBOARD -> event // No mapping needed for keyboard
+            
+            InputSource.ON_SCREEN -> when (event) {
+                is InputEvent.TouchEvent -> {
+                    event.copy(
+                        mouseMode = touchConfig.mouseMode
+                    )
+                }
+                else -> event
+            }
         }
     }
     
@@ -482,6 +494,7 @@ class InputRouter(
             x = x,
             y = y,
             intensity = abs(x) + abs(y),
+            deadzone = controllerConfig.deadzone,
             timestamp = System.currentTimeMillis()
         )
         
@@ -516,6 +529,7 @@ class InputRouter(
                 x = event.x,
                 y = event.y,
                 intensity = 1.0f,
+                deadzone = controllerConfig.deadzone,
                 timestamp = System.currentTimeMillis()
             )
             
@@ -525,6 +539,7 @@ class InputRouter(
                 x = event.x,
                 y = event.y,
                 touchCount = event.pointerCount,
+                mouseMode = touchConfig.mouseMode,
                 timestamp = System.currentTimeMillis()
             )
             
@@ -534,6 +549,7 @@ class InputRouter(
                 x = event.x,
                 y = event.y,
                 touchCount = event.pointerCount,
+                mouseMode = touchConfig.mouseMode,
                 timestamp = System.currentTimeMillis()
             )
             
@@ -599,7 +615,7 @@ data class InputState(
 /**
  * Unified input event types
  */
-sealed class InputEvent(val source: InputSource, val timestamp: Long) {
+sealed class InputEvent(open val source: InputSource, open val timestamp: Long) {
     data class ButtonEvent(
         val action: String,
         val buttonName: String,

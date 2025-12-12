@@ -9,6 +9,7 @@ import android.os.Environment
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,7 +72,7 @@ class PermissionManager(
             return
         }
 
-        _permissionState.value = PermissionState.Requesting(missingPermissions.map { it.name })
+        _permissionState.value = PermissionState.Requesting(missingPermissions.map { it.permissionName })
 
         if (missingPermissions.contains(RequiredPermission.STORAGE) && 
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
@@ -101,12 +102,12 @@ class PermissionManager(
         if (permissionsToRequest.isEmpty()) {
             callback(PermissionRequestResult.AllGranted)
         } else {
-            requestRuntimePermissions(activity, permissionsToRequest, callback)
+            requestRuntimePermissions(activity as LifecycleOwner, permissionsToRequest, callback)
         }
     }
 
     private fun requestRuntimePermissions(
-        activity: Activity, 
+        activity: LifecycleOwner, 
         permissions: Array<String>, 
         callback: (PermissionRequestResult) -> Unit
     ) {
@@ -156,7 +157,7 @@ class PermissionManager(
                 _permissionState.value = PermissionState.Granted
                 PermissionRequestResult.AllGranted
             }
-            deniedPermissions.contains(RequiredPermission.STORAGE.name) && 
+            deniedPermissions.contains(RequiredPermission.STORAGE.permissionName) && 
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.R -> {
                 _permissionState.value = PermissionState.ManageExternalStorageRequired
                 PermissionRequestResult.ManageExternalStorageRequired
@@ -262,7 +263,7 @@ class PermissionManager(
 /**
  * Required permissions enumeration
  */
-enum class RequiredPermission(val name: String) {
+enum class RequiredPermission(val permissionName: String) {
     STORAGE("android.permission.WRITE_EXTERNAL_STORAGE"),
     INTERNET("android.permission.INTERNET"),
     NETWORK_STATE("android.permission.ACCESS_NETWORK_STATE"),

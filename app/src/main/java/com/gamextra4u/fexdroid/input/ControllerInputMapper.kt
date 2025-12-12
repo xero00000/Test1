@@ -301,8 +301,8 @@ class ControllerInputMapper {
 
     private fun getAxisValue(event: MotionEvent?, device: InputDevice, axis: Int): Float {
         return try {
-            // Try to get from MotionEvent first, then fallback to InputDevice
-            event?.getAxisValue(axis) ?: device.getMotionRange(axis)?.value ?: 0f
+            // Try to get from MotionEvent first, then fallback to InputDevice default
+            event?.getAxisValue(axis) ?: device.getMotionRange(axis)?.flat ?: 0f
         } catch (e: Exception) {
             0f
         }
@@ -353,7 +353,7 @@ class ControllerInputMapper {
 /**
  * Sealed hierarchy for controller input events
  */
-sealed class ControllerInputEvent(val timestamp: Long) {
+sealed class ControllerInputEvent(open val timestamp: Long) {
     data class ButtonPressed(
         val deviceId: Int,
         val deviceName: String,

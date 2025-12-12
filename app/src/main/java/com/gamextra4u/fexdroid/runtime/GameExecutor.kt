@@ -210,8 +210,8 @@ class GameExecutor(
             gameName = game.name,
             workingDir = workingDir,
             additionalEnv = mapOf(
-                "GAME_NAME" = game.name,
-                "GAME_APP_ID" = game.appId
+                "GAME_NAME" to game.name,
+                "GAME_APP_ID" to game.appId
             )
         )
 

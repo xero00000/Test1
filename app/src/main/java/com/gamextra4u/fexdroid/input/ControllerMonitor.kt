@@ -38,7 +38,8 @@ class ControllerMonitor(
     private fun notifyControllers() {
         val devices = inputManager?.let { manager ->
             InputDevice.getDeviceIds()
-                .mapNotNull { InputDevice.getDevice(it) }
+                .toList()
+                .mapNotNull { deviceId -> InputDevice.getDevice(deviceId) }
                 .filter { device ->
                     device.sources and InputDevice.SOURCE_GAMEPAD == InputDevice.SOURCE_GAMEPAD ||
                         device.sources and InputDevice.SOURCE_JOYSTICK == InputDevice.SOURCE_JOYSTICK

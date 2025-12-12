@@ -103,9 +103,7 @@ location of your Java installation."
     fi
 fi
 
-if [ -n "$JAVA_OPTS" ] ; then
-    DEFAULT_JVM_OPTS="$JAVA_OPTS $DEFAULT_JVM_OPTS"
-fi
+# JAVA_OPTS handling is done directly in the exec command below
 
 # Escape application args
 save() {
@@ -193,7 +191,7 @@ fi
 CLASSPATH=$APP_HOME/gradle/wrapper/gradle-wrapper.jar:$CLASSPATH
 
 # Now execute the Java SubWiki with the correct settings class name and arguments.
-exec "$JAVACMD" $DEFAULT_JVM_OPTS \
-    -classpath "$CLASSPATH" \
+eval "exec \"$JAVACMD\" $JAVA_OPTS $DEFAULT_JVM_OPTS \
+    -classpath \"$CLASSPATH\" \
     org.gradle.wrapper.GradleWrapperMain \
-    "$@"
+    \"\$@\""
