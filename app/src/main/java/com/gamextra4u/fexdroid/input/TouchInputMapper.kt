@@ -356,7 +356,7 @@ class TouchInputMapper(
 /**
  * Sealed hierarchy for touch input events
  */
-sealed class TouchInputEvent(val timestamp: Long) {
+sealed class TouchInputEvent(open val timestamp: Long) {
     data class TouchStart(
         val x: Float,
         val y: Float,

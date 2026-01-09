@@ -1,12 +1,15 @@
 package com.gamextra4u.fexdroid.storage
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -124,7 +127,7 @@ class StorageManager(
             totalBytes = totalBytes,
             availableBytes = availableBytes,
             usedBytes = usedBytes,
-            usagePercentage = if (totalBytes > 0) (usedBytes * 100 / totalBytes) else 0,
+            usagePercentage = if (totalBytes > 0) (usedBytes * 100 / totalBytes).toInt() else 0,
             gameLibraryPath = gameLibraryDir.absolutePath,
             downloadsPath = downloadsDir.absolutePath
         )
@@ -178,11 +181,10 @@ class StorageManager(
             Environment.isExternalStorageManager()
         } else {
             // Android 10 and below use legacy storage permissions
-            android.os.Environment.checkPermission(
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE, 
-                android.os.Process.myPid(), 
-                android.os.Process.myUid()
-            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
         }
     }
 
